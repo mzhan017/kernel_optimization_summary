@@ -1,2 +1,9 @@
-# kernel_optimization_summary
-summary of optimization in linux kernel
+# 内核里的优化点
+## 简介
+在看内核代码的时候，经常看到一些有关性能优化的地方。
+其实这些性能优化页可以被其他项目用到。
+所以这里将看到的优化点总结出来，以备不时之需。
+
+# Memory
+## Cache Line related
+## 
