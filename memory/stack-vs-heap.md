@@ -16,3 +16,19 @@ Optimize select and poll by a using stack space for small fd sets
 #define WQUEUES_STACK_ALLOC	(MAX_STACK_ALLOC - FRONTEND_STACK_ALLOC)
 #define N_INLINE_POLL_ENTRIES	(WQUEUES_STACK_ALLOC / sizeof(struct poll_table_entry))
 ```
+
+在实际的改动中，对齐有关系（而对齐也是优化的一个领域），比如下面这个代码，下面的代码有说
+需要long型的数组，这样可以更好的适合64位机上的对齐。
+```
+static int do_sys_poll(struct pollfd __user *ufds, unsigned int nfds,
+		struct timespec64 *end_time)
+{
+	struct poll_wqueues table;
+	int err = -EFAULT, fdcount;
+	/* Allocate small arguments on the stack to save memory and be
+	   faster - use long to make sure the buffer is aligned properly
+	   on 64 bit archs to avoid unaligned access */
+	long stack_pps[POLL_STACK_ALLOC/sizeof(long)];
+	struct poll_list *const head = (struct poll_list *)stack_pps;
+ 	struct poll_list *walk = head;
+```
