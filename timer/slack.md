@@ -74,3 +74,29 @@ Valid values are from 0 - ULLONG_MAX
 An application setting the value must have PTRACE_MODE_ATTACH_FSCREDS level
 permissions on the task specified to change its timerslack_ns value.
 ```
+
+可以通过prctl这个接口来修改这个slack参数
+```
+SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
+                unsigned long, arg4, unsigned long, arg5)
+{
+        struct task_struct *me = current;
+        unsigned char comm[sizeof(me->comm)];
+        long error;
+        ...
+                case PR_GET_TIMERSLACK:
+                if (current->timer_slack_ns > ULONG_MAX)
+                        error = ULONG_MAX;
+                else
+                        error = current->timer_slack_ns;
+                break;
+        case PR_SET_TIMERSLACK:
+                if (rt_or_dl_task_policy(current))
+                        break;
+                if (arg2 <= 0)
+                        current->timer_slack_ns =
+                                        current->default_timer_slack_ns;
+                else
+                        current->timer_slack_ns = arg2;
+                break;
+```
